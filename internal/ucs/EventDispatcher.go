@@ -2,6 +2,7 @@ package ucs
 
 import (
 	"errors"
+	"sync"
 
 	"github.com/daividpaulo/EventDispatcherModule/internal/interfaces"
 )
@@ -35,14 +36,13 @@ func (ed *EventDispatcher) Register(eventName string, handler interfaces.EventHa
 
 func (ed *EventDispatcher) Dispatch(event interfaces.EventInterface) error {
 
-	if _, ok := ed.handlers[event.GetName()]; !ok {
-		return errors.New("event not registered")
-	}
-
-	for _, handler := range ed.handlers[event.GetName()] {
-		if err := handler.Handle(event); err != nil {
-			return err
+	if handlers, ok := ed.handlers[event.GetName()]; ok {
+		wg := &sync.WaitGroup{}
+		for _, handler := range handlers {
+			wg.Add(1)
+			go handler.Handle(event, wg)
 		}
+		wg.Wait()
 	}
 
 	return nil

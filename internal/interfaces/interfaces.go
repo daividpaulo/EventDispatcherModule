@@ -1,6 +1,9 @@
 package interfaces
 
-import "time"
+import (
+	"sync"
+	"time"
+)
 
 type (
 	EventInterface interface {
@@ -10,7 +13,7 @@ type (
 	}
 
 	EventHandlerInterface interface {
-		Handle(event EventInterface) error
+		Handle(event EventInterface, wg *sync.WaitGroup) error
 	}
 
 	EventDispatcherInterface interface {
